@@ -18,7 +18,18 @@ diagWin = diag(sparse(ham_win));
 sigWindowed = diagWin * sigFramed;
 energyST = sum(sigWindowed.^2);
 
-delay = (win_len - 1)/2;
+delay = fix((win_len - 1)/2);
 
+figure();
 plot(tt, speech, tt(1:end-delay), energyST(delay+1:end));
 
+% ZCR
+
+diff = abs(sign([speech; 0]) - sign([0; speech]));
+sigFramed2 = buffer(diff, win_len, win_overlap);
+diagWin = diag(sparse(ham_win));
+sigWindowed2 = diagWin * sigFramed2;
+ZCR = sum(sigWindowed2);
+ZCR_norm = ZCR/max(ZCR);
+figure();
+plot(tt, speech, tt(1:end-delay +1), ZCR_norm(delay+1:end));
