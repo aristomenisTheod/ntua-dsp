@@ -11,25 +11,34 @@ t = length(speech)/Fs;
 tt = linspace(1, t, length(speech));
 win_len = 0.02 * Fs;
 % TODO: Make it a function
-win_overlap = win_len - 1;
-ham_win = hamming(win_len);
-sigFramed = buffer(speech, win_len, win_overlap);
-diagWin = diag(sparse(ham_win));
-sigWindowed = diagWin * sigFramed;
-energyST = sum(sigWindowed.^2);
+energyST = hamm_ste(speech, win_len);
 
 delay = fix((win_len - 1)/2);
-
 figure();
 plot(tt, speech, tt(1:end-delay), energyST(delay+1:end));
 
 % ZCR
 
-diff = abs(sign([speech; 0]) - sign([0; speech]));
-sigFramed2 = buffer(diff, win_len, win_overlap);
-diagWin = diag(sparse(ham_win));
-sigWindowed2 = diagWin * sigFramed2;
-ZCR = sum(sigWindowed2);
-ZCR_norm = ZCR/max(ZCR);
+ZCR_norm = hamm_zcr(speech, win_len);
 figure();
 plot(tt, speech, tt(1:end-delay +1), ZCR_norm(delay+1:end));
+
+function energyST = hamm_ste (signal, win_len)
+    win_overlap = win_len - 1;
+    ham_win = hamming(win_len);
+    sigFramed = buffer(signal, win_len, win_overlap);
+    diagWin = diag(sparse(ham_win));
+    sigWindowed = diagWin * sigFramed;
+    energyST = sum(sigWindowed.^2);
+end
+
+function ZCR_norm = hamm_zcr (signal, win_len)
+    win_overlap = win_len - 1;
+    ham_win = hamming(win_len);
+    difference = abs(sign([signal; 0]) - sign([0; signal]));
+    sigFramed2 = buffer(difference, win_len, win_overlap);
+    diagWin = diag(sparse(ham_win));
+    sigWindowed2 = diagWin * sigFramed2;
+    ZCR = sum(sigWindowed2);
+    ZCR_norm = ZCR/max(ZCR);
+end
