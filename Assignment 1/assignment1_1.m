@@ -1,5 +1,6 @@
 clear;
 clc;
+close all;
 % Step 1.1
 
 samples = linspace(1,1001,1000);
@@ -41,10 +42,12 @@ AM_sound = [tones{10} pad tones{6} pad tones{2} pad tones{2} pad ...
     tones{8} pad tones{8} pad tones{1} pad tones{4}];
 audiowrite('tone_sequence.wav', AM_sound/abs(max(AM_sound)), fs);
 
+figure();
+plot(AM_sound);
+
 % Step 1.4
 rect_win = rectwin(1000);
 hamm_win = hamming(1000);
-
 
 AM_tones = cell(8, 1);
 for i = linspace(1, 8, 8)
@@ -52,13 +55,22 @@ for i = linspace(1, 8, 8)
     AM_tones{i} = AM_sound(index: index+999)';
 end
 
-
 F_t_rect = cell(8,1);
 F_t_hamm = cell(8,1);
 
 for i = linspace(1, 8, 8)
     F_t_rect{i} = abs(fft(rect_win .* AM_tones{i}));
     F_t_hamm{i} = abs(fft(hamm_win .* AM_tones{i}));
+end
+
+for i = linspace(1, 8, 8)
+figure();
+subplot(1, 2, 1);
+plot(F_t_rect{i});
+title(sprintf('%s %d', 'Rectangular window digit', i));
+subplot(1, 2, 2);
+plot(F_t_hamm{i});
+title(sprintf('%s %d', 'Hamming window digit', i));
 end
 
 % Step 1.5
