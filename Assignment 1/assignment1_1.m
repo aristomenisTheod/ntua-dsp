@@ -63,15 +63,15 @@ for i = linspace(1, 8, 8)
     F_t_hamm{i} = abs(fft(hamm_win .* AM_tones{i}));
 end
 
-for i = linspace(1, 8, 8)
-figure();
-subplot(1, 2, 1);
-plot(F_t_rect{i});
-title(sprintf('%s %d', 'Rectangular window digit', i));
-subplot(1, 2, 2);
-plot(F_t_hamm{i});
-title(sprintf('%s %d', 'Hamming window digit', i));
-end
+% for i = linspace(1, 8, 8)
+%     figure();
+%     subplot(1, 2, 1);
+%     plot(F_t_rect{i});
+%     title(sprintf('%s %d', 'Rectangular window digit', i));
+%     subplot(1, 2, 2);
+%     plot(F_t_hamm{i});
+%     title(sprintf('%s %d', 'Hamming window digit', i));
+% end
 
 % Step 1.5
 % https://wiki.analytica.com/index.php?title=FFT
@@ -107,7 +107,15 @@ decoded = ttdecode(AM_sound, touch_tones);
 % Step 1.7
 load('my_touchtones.mat');
 easyDecoded = ttdecode(easySig, touch_tones);
+
+figure();
+plot(easySig);
+title('Easy Signal');
+
 hardDecoded = ttdecode(hardSig, touch_tones); 
+figure();
+plot(hardSig);
+title('Hard Signal');
 
 function Vector = ttdecode(signIn, touchTones)
     
