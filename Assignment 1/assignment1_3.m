@@ -23,7 +23,7 @@ figure();
 plot(tt, speech, tt(1:end-delay +1), ZCR_norm(delay+1:end));
 
 % Section 3.2
-[music, Fs] = audioread('music.wav');
+[music, Fs] = audioread('music_cut.wav');
 
 t = length(speech)/Fs;
 tt = linspace(1, t, length(music));
@@ -38,16 +38,17 @@ plot(tt, music, tt(1:end-delay), energyST(delay+1:end));
 
 ZCR_norm = hamm_zcr(music, win_len);
 figure();
-plot(tt, speech, tt(1:end-delay +1), ZCR_norm(delay+1:end));
+plot(tt, music, tt(1:end-delay+1), ZCR_norm(delay+1:end));
 
 
-function energyST = hamm_ste (signal, win_len)
+function energyST_norm = hamm_ste (signal, win_len)
     win_overlap = win_len - 1;
     ham_win = hamming(win_len);
     sigFramed = buffer(signal, win_len, win_overlap);
     diagWin = diag(sparse(ham_win));
     sigWindowed = diagWin * sigFramed;
     energyST = sum(sigWindowed.^2);
+    energyST_norm = energyST/max(energyST);
 end
 
 function ZCR_norm = hamm_zcr (signal, win_len)
