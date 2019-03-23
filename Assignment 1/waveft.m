@@ -59,30 +59,95 @@ function [wft,frequencies] = waveft(WAV,omega,scales)
 %   M. Misiti, Y. Misiti, G. Oppenheim, J.M. Poggi 04-Mar-2010.
 %   Copyright 1995-2015 The MathWorks, Inc.
 
-wname = WAV;
 param = [];
-
-%StpFrq = omega(2);
+if isstruct(WAV)
+    wname = WAV.name;
+    param = WAV.param;
+elseif iscell(WAV)
+    wname = WAV{1};
+    if length(WAV)>1 , param = WAV{2}; end
+else
+    wname = WAV;
+end
+StpFrq = omega(2);
 NbFrq  = length(omega);
-%SqrtNbFrq = sqrt(NbFrq);
-%cfsNORM = sqrt(StpFrq)*SqrtNbFrq;
+SqrtNbFrq = sqrt(NbFrq);
+cfsNORM = sqrt(StpFrq)*SqrtNbFrq;
 NbSc = length(scales);
 wft = zeros(NbSc,NbFrq);
 
 switch wname
-    case 'amor'    % MORLET (A)
+    case 'morl'    % MORLET (A)
         if isempty(param) , gC = 6; else gC = param; end
-        mul = 2;
+        mul = (pi^(-0.25))*cfsNORM;
         for jj = 1:NbSc
             expnt = -(scales(jj).*omega - gC).^2/2.*(omega > 0);
-            wft(jj,:) = mul*exp(expnt).*(omega > 0);
+            wft(jj,:) = mul*sqrt(scales(jj))*exp(expnt).*(omega > 0);
         end
         
         FourierFactor = gC/(2*pi);
         frequencies = FourierFactor./scales;
         
- 
-   
+    case 'morlex'  % MORLET (B)
+        if isempty(param) , gC = 6; else gC = param; end
+        mul = (pi^(-0.25))*cfsNORM;
+        for jj = 1:NbSc
+            expnt = -(scales(jj).*omega - gC).^2/2;
+            wft(jj,:) = mul*sqrt(scales(jj))*exp(expnt);
+        end
+        
+        FourierFactor = gC/(2*pi);
+        frequencies = FourierFactor./scales;
+        
+    case 'morl0'   % MORLET (C)
+        if isempty(param) , gC = pi*sqrt(2/log(2)); else gC = param; end
+        mul = (pi^(-0.25))*cfsNORM;
+        for jj = 1:NbSc
+            expnt  = -(scales(jj).*omega - gC).^2/2;
+            correct = -(gC^2 +(scales(jj).*omega).^2)/2;
+            wft(jj,:) = mul*sqrt(scales(jj))*(exp(expnt)-exp(correct));
+        end
+        
+        FourierFactor = gC/(2*pi);
+        frequencies = FourierFactor./scales;
+                
+    case 'mexh'
+        mul = sqrt(scales/gamma(2+0.5))*cfsNORM;
+        for jj = 1:NbSc
+            scapowered = (scales(jj).*omega);
+            expnt = -(scapowered.^2)/2;
+            wft(jj,:) = mul(jj)*(scapowered.^2).*exp(expnt);
+        end
+        
+        FourierFactor = sqrt(2+1/2)/(2*pi);
+        frequencies = FourierFactor./scales;
+        
+    case 'dog'
+            if isempty(param) , m = 2; 
+            else m = param; 
+                validateattributes(m,{'numeric'},{'scalar','even'});
+            end
+        mul = -((1i^m)/sqrt(gamma(m+0.5)))*sqrt(scales)*cfsNORM;
+        for jj = 1:NbSc
+            scapowered = (scales(jj).*omega);
+            expnt = -(scapowered.^2)/2;
+            wft(jj,:) = mul(jj).*(scapowered.^m).*exp(expnt);
+        end
+        
+        FourierFactor = sqrt(m+1/2)/(2*pi);
+        frequencies = FourierFactor./scales;
+
+    case 'paul'
+        if isempty(param) , m = 4; else m = param; end
+        mul = sqrt(scales)*(2^m/sqrt(m*prod(2:(2*m-1))))*cfsNORM;
+        for jj = 1:NbSc
+            expnt = -(scales(jj).*omega).*(omega > 0);
+            daughter = mul(jj)*((scales(jj).*omega).^m).*exp(expnt);
+            wft(jj,:) = daughter.*(omega > 0);
+        end
+        
+        FourierFactor = (2*m+1)/(4*pi);
+        frequencies = FourierFactor./scales;
         
     case 'bump'
         if isempty(param)
@@ -95,34 +160,12 @@ switch wname
         for jj = 1:NbSc
             w = (scales(jj)*omega-mu)./sigma;
             expnt = -1./(1-w.^2);
-            daughter = 2*exp(1)*exp(expnt).*(abs(w)<1-eps(1));
+            daughter = exp(1)*exp(expnt).*(abs(w)<1-eps(1));
             daughter(isnan(daughter)) = 0;
             wft(jj,:) = daughter;
         end
         
         FourierFactor = mu/(2*pi);
-        frequencies = FourierFactor./scales;
-        
-    case 'dergauss2'
-        %normconst = 0.967884649268459/2*exp(1);
-        normconst = 1/2*exp(1);
-        for jj = 1:NbSc
-            expnt = -(scales(jj).*omega).^2./2;
-            daughter = normconst*(scales(jj).*omega).^2.*exp(expnt);
-            wft(jj,:) = daughter;
-        end
-        FourierFactor = sqrt(2)/(2*pi);
-        frequencies = FourierFactor./scales;
-        
-        case 'dergauss3'
-        %normconst = -1i/2*exp(1/2);
-        normconst = 1/3^(3/2)*exp(3/2);
-        for jj = 1:NbSc
-            expnt = -(scales(jj).*omega).^2./2;
-            daughter = -normconst*(scales(jj).*-1i*omega).^3.*exp(expnt);
-            wft(jj,:) = daughter;
-        end
-        FourierFactor = 1/(2*pi);
         frequencies = FourierFactor./scales;
         
     otherwise
