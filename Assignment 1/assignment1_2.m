@@ -48,7 +48,7 @@ plot(n, x2);
 
 [stft, freq, time] = spectrogram(x2, 0.04*fs, 0.02*fs, [], fs);
 figure();
-contour(time, freq, abs(stft), 'ShowText', 'on');
+contour(time, freq, abs(stft));
 colorbar;
 
 % Step c
