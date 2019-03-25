@@ -9,7 +9,7 @@ close all;
 
 t = length(speech)/Fs;
 tt = linspace(1, t, length(speech));
-win_len = 0.08 * Fs;
+win_len = 0.02 * Fs;
 energyST = hamm_ste(speech, win_len);
 
 delay = fix((win_len - 1)/2);
@@ -27,14 +27,14 @@ plot(tt, speech, tt(1:end-delay +1), ZCR_norm(delay+1:end));
 
 t = length(speech)/Fs;
 tt = linspace(1, t, length(music));
-win_len = 0.02 * Fs;
+win_len = 0.08 * Fs;
 energyST = hamm_ste(music, win_len);
 
 delay = fix((win_len - 1)/2);
 figure();
 plot(tt, music, tt(1:end-delay), energyST(delay+1:end));
 
- ZCR
+% ZCR
 
 ZCR_norm = hamm_zcr(music, win_len);
 figure();
