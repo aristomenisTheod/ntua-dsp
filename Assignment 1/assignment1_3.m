@@ -5,22 +5,22 @@ close all;
 % Part 3
 % Section 3.1
 % http://cvsp.cs.ntua.gr/~nassos/resources/speech_course_2004/OnlineSpeechDemos/speechDemo_2004_Part1.html#2
-%[speech, Fs] = audioread('speech_utterance.wav');
+[speech, Fs] = audioread('speech_utterance.wav');
 
-%t = length(speech)/Fs;
-%tt = linspace(1, t, length(speech));
-%win_len = 0.02 * Fs;
-%energyST = hamm_ste(speech, win_len);
+t = length(speech)/Fs;
+tt = linspace(1, t, length(speech));
+win_len = 0.02 * Fs;
+energyST = hamm_ste(speech, win_len);
 
-%delay = fix((win_len - 1)/2);
-%figure();
-%plot(tt, speech, tt(1:end-delay), energyST(delay+1:end));
+delay = fix((win_len - 1)/2);
+figure();
+plot(tt, speech, tt(1:end-delay), energyST(delay+1:end));
 
 % ZCR
 
-%ZCR_norm = hamm_zcr(speech, win_len);
-%figure();
-%plot(tt, speech, tt(1:end-delay +1), ZCR_norm(delay+1:end));
+ZCR_norm = hamm_zcr(speech, win_len);
+figure();
+plot(tt, speech, tt(1:end-delay +1), ZCR_norm(delay+1:end));
 
 % Section 3.2
 [music, Fs] = audioread('music_cut.wav');
