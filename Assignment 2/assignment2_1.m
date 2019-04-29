@@ -2,8 +2,9 @@ clc;
 clear;
 close all;
 
-% Part 1
-% Section 1.0
+%%%     Part 1       %%%
+%%    Section 1.0     %%
+% Signal Normalization %
 
 [music_stereo, Fs] = audioread('music-dsp19.wav');
 music = (music_stereo(:,1)+music_stereo(:,2))/2;
@@ -25,7 +26,9 @@ tl = linspace(1, 512, 512);
 figure();
 plot(tl, musicWindowed(:,1));
 
-% Section 1.1
+%%   Section 1.1   %%
+% Spectral Analysis %
+
 freq_scale = linspace(20, 20000, 19980);
 bark_scale = bark(freq_scale);
 
@@ -34,7 +37,9 @@ k = linspace(1, 256, 256);
 figure();
 plot(k, musicPK(:,1));
 
-% Section 1.2
+%% Section 1.2 %%
+%  Noise & Signal Maskers Identification %
+
 musicSt = zeros(size(musicPK,1), size(musicPK,2));
 musicPTM = zeros(size(musicPK,1), size(musicPK,2));
 musicPNM = zeros(size(musicPK,1), size(musicPK,2));
