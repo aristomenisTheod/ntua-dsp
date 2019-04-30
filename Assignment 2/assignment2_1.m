@@ -29,7 +29,7 @@ plot(tl, musicWindowed(:,1));
 %%   Section 1.1   %%
 % Spectral Analysis %
 
-freq_scale = linspace(20, 20000, 19980);
+freq_scale = linspace(20, 20000, 256);
 bark_scale = bark(freq_scale);
 
 musicPK = pk(musicWindowed);
@@ -49,11 +49,48 @@ for k = 1 : size(musicPK,2)
     musicPTM(:,k) = PTM(musicPK(:,k), musicSt(:,k));
     musicPNM(:,k) = findNoiseMaskers(musicPK(:,k), musicPTM(:,k), bark_scale);
 end
+figure();
+plot(musicPNM(:,1));
+%% Section 1.3 %%
+% Reduction & Reorganization of Maskers %
+musicTq = Tq(freq_scale);
+figure();
+semilogx(freq_scale, musicTq);
+grid on;
+
+music_newPTM = zeros(size(musicPK,1), size(musicPK,2));
+music_newPNM = zeros(size(musicPK,1), size(musicPK,2));
+for k = 1 : size(musicPK,2)
+    [music_newPTM(:,k), music_newPNM(:,k)] = checkMaskers(musicPTM(:,k)', musicPNM(:,k)', musicTq, bark_scale); 
+end
+
+figure();
+plot(music_newPNM(:,1));
+
+%% Section 1.4 %%
+% Individual Masking Thresholds %
 
 
 
 
-% FUNCTIONS
+%% FUNCTIONS
+function result = SF(P, b)
+    result = zeros(size
+    for j = 1 : length(P)
+       if(P(j) > 0)
+          for i = 1 : length(b)
+             if((b(i) >= b(j)-3) && (b(i) <= b(j)+8))
+                if(b(i)-b(j) <= -1)
+                    result(i,j
+                end
+             end
+          end
+       end
+    end
+end
+function result = Tq(f)
+    result = 3.64*(f/1000).^(-0.8)-6.5*exp(-0.6*(f/1000-3.3).^2)+10^(-3)*(f/1000).^4;
+end
 function result = PTM(signal, signalSt)
     result = zeros(length(signal),1);    
     for k = 1 : length(signal)
