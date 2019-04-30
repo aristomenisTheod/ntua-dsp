@@ -70,18 +70,56 @@ plot(music_newPNM(:,1));
 %% Section 1.4 %%
 % Individual Masking Thresholds %
 
+[music_TTM, music_TNM] = Thresholds(musicPTM, musicPNM, bark_scale);
 
+%% Section 1.5 %%
+% Global Masking Threshold %
+sumsTtm = sum(10.^0.1*music_TTM);
+sumsTnm = sum(10.^0.1*music_TNM);
 
+Tg = zeros(size(musicPTM, 1), size(musicPTM, 2));
+for k = 1 : size(Tg, 2)
+    for i = 1 : size(Tg, 1)
+        Tg(i,k) = 10*log10(10^(0.1*Tq(i))+sumsTtm(1, i, k)+sumsTtm(1, i, k));
+    end
+end
+figure();
+plot(Tg(:,1));
 
 %% FUNCTIONS
+function [result_Ttm, result_Tnm] = Thresholds(Ptm, Pnm, b)
+    result_Ttm = zeros(size(Ptm,1), length(b), size(Ptm, 2));
+    result_Tnm = zeros(size(Ptm,1), length(b), size(Ptm, 2));
+    SF_Ttm = SF(Ptm, b);
+    SF_Tnm = SF(Pnm, b);
+    for k = 1 : size(Ptm, 2)
+        for j = 1 : size(Ptm,1)
+            for i = 1 : size(Ptm,1)
+                if( Ptm(j) > 0)
+                    result_Ttm(i,j,k) = Ptm(j,k)-0.275*b(j)+SF_Ttm(i,j)-6.025;
+                end
+                if(Pnm(j) > 0)
+                    result_Tnm(i,j,k) = Pnm(j,k)-0.175*b(j)+SF_Tnm(i,j)-2.025;
+                end
+            end
+        end
+    end
+end
 function result = SF(P, b)
-    result = zeros(size
-    for j = 1 : length(P)
-       if(P(j) > 0)
+    result = zeros(length(b), length(P));
+    for j = 1 : length(b)
+       if(P(j) > 0.0)
           for i = 1 : length(b)
              if((b(i) >= b(j)-3) && (b(i) <= b(j)+8))
-                if(b(i)-b(j) <= -1)
-                    result(i,j
+                D = b(i)-b(j);
+                if(D < -1)
+                    result(i,j) = 17*D-0.4*P(j)+11;
+                elseif(D < 0)
+                    result(i,j) = (0.4*P(j)+6)*D;
+                elseif(D < 1)
+                    result(i,j) = -17*D;
+                else
+                    result(i,j) = (0.15*P(j)-17)*D-0.15*P(j);
                 end
              end
           end
