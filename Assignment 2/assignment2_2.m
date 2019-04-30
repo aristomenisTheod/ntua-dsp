@@ -33,6 +33,7 @@ end
 
 %% Section 2.1 %%
 
+% Filtering %
 num_windows = size(musicWindowed, 2);
 u_k = zeros(win_len + L - 1, num_windows, M);
 for k = 1:M
@@ -40,6 +41,20 @@ for k = 1:M
         u_k(:, win, k) = conv(filterbank(:,k), musicWindowed(:,win)); 
     end
 end
+
+% Undersampling %
+new_win_size = ceil((win_len+L-1)/M);
+undersampled_u_k = zeros(new_win_size, num_windows, M); 
+for k = 1:M
+    for win = 1:num_windows
+        undersampled_u_k(:, win, k) = u_k((1:M:win_len+L-1), win, k);
+    end
+end
+        
+%% Section 2.2 %%
+% Quantization %
+
+
 
 %% Functions %%
 
