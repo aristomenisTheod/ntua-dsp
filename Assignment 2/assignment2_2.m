@@ -6,15 +6,11 @@ close all;
 
 [music_stereo, Fs] = audioread('music-dsp19.wav');
 music = (music_stereo(:,1)+music_stereo(:,2))/2;
-music_norm = music/max(music);
+music_norma = music/max(music);
 
-win_len = 512;
-ham_win = hann(win_len);
-
-musicFramed = buffer(music_norm, win_len);
-diagWin = diag(sparse(ham_win));
-musicWindowed = diagWin * musicFramed;
-
+win_length = 512;
+musicWindowed2 = buffer(music_norma, win_length);
+musicWindowedNotNormed = buffer(music, win_length);
 
 %%    Section 2.0     %%
 % Filterbank %
@@ -34,25 +30,81 @@ end
 %% Section 2.1 %%
 
 % Filtering %
-num_windows = size(musicWindowed, 2);
-u_k = zeros(win_len + L - 1, num_windows, M);
+num_windows = size(musicWindowed2, 2);
+u_k = zeros(win_length + L - 1, num_windows, M);
 for k = 1:M
     for win = 1:num_windows
-        u_k(:, win, k) = conv(filterbank(:,k), musicWindowed(:,win)); 
+        u_k(:, win, k) = conv(filterbank(:,k), musicWindowed2(:,win)); 
     end
 end
 
 % Undersampling %
-new_win_size = ceil((win_len+L-1)/M);
+new_win_size = ceil((win_length+L-1)/M);
 undersampled_u_k = zeros(new_win_size, num_windows, M); 
 for k = 1:M
     for win = 1:num_windows
-        undersampled_u_k(:, win, k) = u_k((1:M:win_len+L-1), win, k);
+        undersampled_u_k(:, win, k) = u_k((1:M:win_length+L-1), win, k);
     end
 end
         
 %% Section 2.2 %%
 % Quantization %
+run('assignment2_1.m');
+
+% Adaptive number of bits %
+adaptive_quantized = zeros(size(musicWindowedNotNormed,1),size(musicWindowedNotNormed,2));
+Bk = zeros(size(musicWindowedNotNormed,2),1);
+for k = 1 : size(musicWindowedNotNormed,2)
+    music_broken = unique(musicWindowedNotNormed(:,k));
+    R = length(music_broken);
+    Xmin = min(music_broken);
+    Xmax = max(music_broken);
+    Bk(k,1) = ceil(log2(R/min(Tg(:,k)))-1);
+    D = (Xmax-Xmin)/(2.0^Bk(k,1));
+    num_quant = 2^Bk(k,1);
+    quantoms = zeros(num_quant,1);
+    quantoms(1) = Xmin;
+    for l = 2 : 2^Bk(k,1)
+       quantoms(l,1) = quantoms(l-1,1) + D;
+    end
+    temp_quantoms = zeros(size(quantoms,1),1);
+    for i = 1 : size(musicWindowedNotNormed,1)
+       temp_quantoms(:,1) = abs(quantoms(:,1) - musicWindowedNotNormed(i,k));
+       [min_val, index] = min(temp_quantoms);
+       adaptive_quantized(i,k) = quantoms(index,1);
+    end
+end
+% figure();
+% stairs(adaptive_quantized(:,100));
+
+% 8 bits %
+
+NonAdaptive_quantized = zeros(size(musicWindowedNotNormed,1),size(musicWindowedNotNormed,2));
+Bk = zeros(size(musicWindowedNotNormed,2),1);
+for k = 1 : size(musicWindowedNotNormed,2);
+    Xmin = -1;
+    Xmax = 1;
+    Bk(k,1) = 8;
+    D = (Xmax-Xmin)/(2.0^Bk(k,1));
+    num_quant = 2^Bk(k,1);
+    quantoms = zeros(num_quant,1);
+    quantoms(1) = Xmin;
+    for l = 2 : 2^Bk(k,1)
+       quantoms(l,1) = quantoms(l-1,1) + D;
+    end
+    temp_quantoms = zeros(size(quantoms,1),1);
+    for i = 1 : size(musicWindowedNotNormed,1)
+       temp_quantoms(:,1) = abs(quantoms(:,1) - musicWindowedNotNormed(i,k));
+       [min_val, index] = min(temp_quantoms);
+       NonAdaptive_quantized(i,k) = quantoms(index,1);
+    end
+end
+% figure();
+% stairs(NonAdaptive_quantized(:,100));
+
+%% Section 2.3 %%
+% Composition %
+
 
 
 

@@ -1,7 +1,3 @@
-clc;
-clear;
-close all;
-
 %%%     Part 1       %%%
 %%    Section 1.0     %%
 % Signal Normalization %
