@@ -51,27 +51,29 @@ end
 % Quantization %
 run('assignment2_1.m');
 
-% Adaptive number of bits %
-adaptive_quantized = zeros(size(musicWindowedNotNormed,1),size(musicWindowedNotNormed,2));
+% Adaptive number of bits for each frame %
+adaptive_quantized = zeros(size(undersampled_u_k,1),size(musicWindowedNotNormed,2),size(undersampled_u_k,3));
 Bk = zeros(size(musicWindowedNotNormed,2),1);
-for k = 1 : size(musicWindowedNotNormed,2)
-    music_broken = unique(musicWindowedNotNormed(:,k));
-    R = length(music_broken);
-    Xmin = min(music_broken);
-    Xmax = max(music_broken);
-    Bk(k,1) = ceil(log2(R/min(Tg(:,k)))-1);
-    D = (Xmax-Xmin)/(2.0^Bk(k,1));
-    num_quant = 2^Bk(k,1);
-    quantoms = zeros(num_quant,1);
-    quantoms(1) = Xmin;
-    for l = 2 : 2^Bk(k,1)
-       quantoms(l,1) = quantoms(l-1,1) + D;
-    end
-    temp_quantoms = zeros(size(quantoms,1),1);
-    for i = 1 : size(musicWindowedNotNormed,1)
-       temp_quantoms(:,1) = abs(quantoms(:,1) - musicWindowedNotNormed(i,k));
-       [min_val, index] = min(temp_quantoms);
-       adaptive_quantized(i,k) = quantoms(index,1);
+for win = 1 : size(undersampled_u_k,3)
+    for k = 1 : size(undersampled_u_k,2)
+        music_broken = unique(musicWindowedNotNormed(:,k));
+        R = length(music_broken);
+        Xmin = min(music_broken);
+        Xmax = max(music_broken);
+        Bk(k,1) = ceil(log2(R/min(Tg(:,k)))-1);
+        D = (Xmax-Xmin)/(2.0^Bk(k,1));
+        num_quant = 2^Bk(k,1);
+        quantoms = zeros(num_quant,1);
+        quantoms(1) = Xmin;
+        for l = 2 : 2^Bk(k,1)
+           quantoms(l,1) = quantoms(l-1,1) + D;
+        end
+        temp_quantoms = zeros(size(quantoms,1),1);
+        for i = 1 : size(undersampled_u_k,1)
+           temp_quantoms(:,1) = abs(quantoms(:,1) - undersampled_u_k(i,k,win));
+           [min_val, index] = min(temp_quantoms);
+           adaptive_quantized(i,k,win) = quantoms(index,1);
+        end
     end
 end
 % figure();
@@ -79,24 +81,26 @@ end
 
 % 8 bits %
 
-NonAdaptive_quantized = zeros(size(musicWindowedNotNormed,1),size(musicWindowedNotNormed,2));
+NonAdaptive_quantized = zeros(size(undersampled_u_k,1),size(musicWindowedNotNormed,2),size(undersampled_u_k,3));
 Bk = zeros(size(musicWindowedNotNormed,2),1);
-for k = 1 : size(musicWindowedNotNormed,2);
-    Xmin = -1;
-    Xmax = 1;
-    Bk(k,1) = 8;
-    D = (Xmax-Xmin)/(2.0^Bk(k,1));
-    num_quant = 2^Bk(k,1);
-    quantoms = zeros(num_quant,1);
-    quantoms(1) = Xmin;
-    for l = 2 : 2^Bk(k,1)
-       quantoms(l,1) = quantoms(l-1,1) + D;
-    end
-    temp_quantoms = zeros(size(quantoms,1),1);
-    for i = 1 : size(musicWindowedNotNormed,1)
-       temp_quantoms(:,1) = abs(quantoms(:,1) - musicWindowedNotNormed(i,k));
-       [min_val, index] = min(temp_quantoms);
-       NonAdaptive_quantized(i,k) = quantoms(index,1);
+for win = 1 : size(undersampled_u_k,3)
+    for k = 1 : size(undersampled_u_k,2)
+        Xmin = -1;
+        Xmax = 1;
+        Bk(k,1) = 8;
+        D = (Xmax-Xmin)/(2.0^Bk(k,1));
+        num_quant = 2^Bk(k,1);
+        quantoms = zeros(num_quant,1);
+        quantoms(1) = Xmin;
+        for l = 2 : 2^Bk(k,1)
+           quantoms(l,1) = quantoms(l-1,1) + D;
+        end
+        temp_quantoms = zeros(size(quantoms,1),1);
+        for i = 1 : size(undersampled_u_k,1)
+           temp_quantoms(:,1) = abs(quantoms(:,1) - undersampled_u_k(i,k,win));
+           [min_val, index] = min(temp_quantoms);
+           NonAdaptive_quantized(i,k,win) = quantoms(index,1);
+        end
     end
 end
 % figure();
@@ -105,18 +109,43 @@ end
 %% Section 2.3 %%
 % Composition %
 
+% Oversampling %
 
+oversampled_music = zeros(M*size(adaptive_quantized,1),size(adaptive_quantized,2), size(adaptive_quantized,3));
+for win = 1 : size(oversampled_music,3)
+    for k = 1 : size(oversampled_music,2)
+        for i = 1 : size(adaptive_quantized,1)
+            oversampled_music(i*M,k,win) = adaptive_quantized(i,k,win);
+        end
+    end
+end
 
+% Filtering %
+
+filterbank = zeros(L, M);
+
+for k = 1:M
+    for n = 1:L
+        filterbank(n, k) = g_k(n, k, M);
+    end
+end
+
+filtered = zeros(size(oversampled_music,1)+size(filterbank,1)-1,size(oversampled_music,2), size(oversampled_music,3));
+for win = 1 : size(oversampled_music,2)
+    for k = 1 : size(oversampled_music,3)
+        filtered(:, win, k) = conv(filterbank(:,k), oversampled_music(:,win,k)); 
+    end
+end
 
 %% Functions %%
 
-function result = g_k(n, M)
+function result = g_k(n,k,M)
 %myFun - Description
 %
 % Syntax: result = g_k(n)
 %
 % Long description
-    result = h_k(2 * M - 1 - n);
+    result = h_k(2 * M - 1 - n, k, M);
     
 end
 
