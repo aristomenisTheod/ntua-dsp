@@ -76,8 +76,8 @@ for win = 1 : size(undersampled_u_k,3)
         end
     end
 end
-% figure();
-% stairs(adaptive_quantized(:,100));
+figure();
+stairs(adaptive_quantized(:,100));
 
 % 8 bits %
 
@@ -103,8 +103,8 @@ for win = 1 : size(undersampled_u_k,3)
         end
     end
 end
-% figure();
-% stairs(NonAdaptive_quantized(:,100));
+figure();
+stairs(NonAdaptive_quantized(:,100));
 
 %% Section 2.3 %%
 % Composition %
@@ -144,7 +144,6 @@ for win = 1 : size(filtered,2)
         music_almost(:,win) = music_almost(:,win) + filtered(:, win, k);
     end
 end
-close all;
 figure();
 plot(music_almost(:,1));
 

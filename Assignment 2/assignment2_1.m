@@ -46,7 +46,7 @@ for k = 1 : size(musicPK,2)
     musicPNM(:,k) = findNoiseMaskers(musicPK(:,k), musicPTM(:,k), bark_scale);
 end
 figure();
-plot(musicPNM(:,1));
+plot(musicPTM(:,100));
 %% Section 1.3 %%
 % Reduction & Reorganization of Maskers %
 musicTq = Tq(freq_scale);
@@ -62,11 +62,13 @@ end
 
 figure();
 plot(music_newPNM(:,1));
-
+figure();
+plot(music_newPTM(:,100));
 %% Section 1.4 %%
 % Individual Masking Thresholds %
 
 [music_TTM, music_TNM] = Thresholds(musicPTM, musicPNM, bark_scale);
+
 
 %% Section 1.5 %%
 % Global Masking Threshold %
