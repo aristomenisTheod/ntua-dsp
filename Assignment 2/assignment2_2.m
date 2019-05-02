@@ -137,6 +137,26 @@ for win = 1 : size(oversampled_music,2)
     end
 end
 
+% Final reconstruction %
+music_almost = zeros(size(filtered,1),size(filtered,2));
+for win = 1 : size(filtered,2)
+    for k = 1 : size(filtered,3)
+        music_almost(:,win) = music_almost(:,win) + filtered(:, win, k);
+    end
+end
+close all;
+figure();
+plot(music_almost(:,1));
+
+new_music = zeros((size(music_almost,1)-M+1)*size(music_almost,2),1);
+for win = 1 : size(music_almost,2)
+    indexing = (size(music_almost,1)-M+1)*(win);
+    new_music(indexing:indexing+(size(music_almost,1)-M+1),1) = music_almost(M-1:size(music_almost,1),win);
+end
+
+figure();
+plot(new_music(:,1));
+sound(new_music(:,1));
 %% Functions %%
 
 function result = g_k(n,k,M)
