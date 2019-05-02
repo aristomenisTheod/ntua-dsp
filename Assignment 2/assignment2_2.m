@@ -156,7 +156,7 @@ end
 
 figure();
 plot(new_music(:,1));
-sound(new_music(:,1));
+
 %% Functions %%
 
 function result = g_k(n,k,M)
