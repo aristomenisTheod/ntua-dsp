@@ -72,8 +72,8 @@ plot(music_newPTM(:,100));
 
 %% Section 1.5 %%
 % Global Masking Threshold %
-sumsTtm = sum(10.^0.1*music_TTM);
-sumsTnm = sum(10.^0.1*music_TNM);
+sumsTtm = sum(10.^(0.1 * music_TTM));
+sumsTnm = sum(10.^(0.1 * music_TNM));
 
 Tg = zeros(size(musicPTM, 1), size(musicPTM, 2));
 for k = 1 : size(Tg, 2)
