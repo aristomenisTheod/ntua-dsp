@@ -12,10 +12,10 @@ figure();
 plot(tt, music_norm);
 
 win_len = 512;
-ham_win = hann(win_len);
+han_win = hann(win_len);
 
 musicFramed = buffer(music_norm, win_len);
-diagWin = diag(sparse(ham_win));
+diagWin = diag(sparse(han_win));
 musicWindowed = diagWin * musicFramed;
 
 tl = linspace(1, 512, 512);
