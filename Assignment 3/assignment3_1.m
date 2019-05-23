@@ -1,12 +1,15 @@
 clc; 
-clear all;
+clear;
 close all;
+
+%% 1.4 Delay-and-sum beam pattern analysis
 
 f = 2000;
 theta_s = pi/2;
 
 theta = linspace(0, pi, 1000);
 
+%%% Question 1
 microphones = [4, 8, 12, 16];
 d = 0.08;
 
@@ -24,12 +27,49 @@ hold on;
 for i = 1:length(microphones)
     semilogy(theta, abs(beam_patterns_N(:,i)));
 end
+legend(string(microphones));
+title('Delay-and-sum beam patterns for different number of microphones');
+
 hold off;
 
 figure(2);
 for i = 1:length(microphones)
     subplot(2,2,i);
     semilogy(theta, abs(beam_patterns_N(:,i)));
+    title("Delay-and-sum beam patterns for " ...
+        + microphones(i) + " microphones");
+end
+
+%%% Question 2
+N = 8;
+d = [0.08, 0.12, 0.16, 0.20];
+
+beam_patterns_d = zeros(length(theta), length(d));
+
+for dist = 1:length(d)
+    for t = 1:length(theta)
+        beam_patterns_d(t, dist) = ... 
+            beta_omega(f, theta(t), N, d(dist), theta_s);
+    end
+end
+
+figure(3);
+hold on;
+for i = 1:length(d)
+    semilogy(theta, abs(beam_patterns_d(:,i)));
+end
+
+legend(string(d));
+title('Delay-and-sum beam patterns for different number of distances');
+
+hold off;
+
+figure(4);
+for i = 1:length(d)
+    subplot(2,2,i);
+    semilogy(theta, abs(beam_patterns_d(:,i)));
+      title("Delay-and-sum beam patterns for " ...
+        + d(i) + " meters distance");
 end
 
 %% Functions 
