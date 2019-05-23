@@ -117,6 +117,49 @@ for i = 1:length(theta)
            + string(rad2deg(theta(i))) + char(176) + " angle");
 end
 
+%%% Question 4
+
+theta_s = [0, pi/4, pi/2];
+f = 2000;
+N = 8;
+d = 0.08;
+
+theta = linspace(-pi, pi, 1000);
+
+beam_patterns_theta = zeros(length(theta), length(theta_s));
+
+for t_s = 1:length(theta_s)
+    for t = 1:length(theta)
+        beam_patterns_theta(t, t_s) = ...
+            beta_omega(f, theta(t), N, d, theta_s(t_s));
+    end
+end
+
+line_color = 'rgb';
+figure(7);
+
+semilogr_polar(theta', ...
+abs(beam_patterns_theta(:,length(theta_s))), line_color(length(theta_s)));
+
+hold on;
+for i = length(theta_s)-1:-1:1
+    semilogr_polar(theta', abs(beam_patterns_theta(:,i)), line_color(i));
+end
+
+legend('\theta_s = ' + string(rad2deg(theta_s)) + char(176), ...
+                'Location', 'southeast');
+% title('Delay-and-sum beam patterns for different number of angles');
+hold off;
+
+figure(8);
+for i = 1:length(theta_s)
+    subplot(2,2,i);
+    semilogr_polar(theta', abs(beam_patterns_theta(:,i)), line_color(i));
+       title("Delay-and-sum beam patterns for " ...
+           + string(rad2deg(theta_s(i))) + char(176) + " angle");
+end
+
+
 %% Functions 
 
 function res = beta_omega (f, theta, N, d, theta_s)
