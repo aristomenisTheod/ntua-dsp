@@ -2,6 +2,8 @@ clc;
 clear;
 close all;
 
+line_color = 'rkbg';
+
 %% 1.4 Delay-and-sum beam pattern analysis
 
 f = 2000;
@@ -23,11 +25,13 @@ for mic = 1:length(microphones)
 end
 
 figure(1);
+semilogy(theta, abs(beam_patterns_N(:,1)), 'r');
 hold on;
-for i = 1:length(microphones)
-    semilogy(theta, abs(beam_patterns_N(:,i)));
+for i = 2:length(microphones)
+    semilogy(theta, abs(beam_patterns_N(:,i)), line_color(i));
 end
-legend(string(microphones));
+
+legend('N = ' + string(microphones), 'Location', 'southeast');
 title('Delay-and-sum beam patterns for different number of microphones');
 
 hold off;
@@ -35,7 +39,7 @@ hold off;
 figure(2);
 for i = 1:length(microphones)
     subplot(2,2,i);
-    semilogy(theta, abs(beam_patterns_N(:,i)));
+    semilogy(theta, abs(beam_patterns_N(:,i)), line_color(i));
     title("Delay-and-sum beam patterns for " ...
         + microphones(i) + " microphones");
 end
@@ -54,12 +58,13 @@ for dist = 1:length(d)
 end
 
 figure(3);
+semilogy(theta, abs(beam_patterns_d(:,1)), 'r');
 hold on;
-for i = 1:length(d)
-    semilogy(theta, abs(beam_patterns_d(:,i)));
+for i = 2:length(d)
+    semilogy(theta, abs(beam_patterns_d(:,i)), line_color(i));
 end
 
-legend(string(d));
+legend('d = ' + string(d), 'Location', 'southeast');
 title('Delay-and-sum beam patterns for different number of distances');
 
 hold off;
@@ -67,9 +72,49 @@ hold off;
 figure(4);
 for i = 1:length(d)
     subplot(2,2,i);
-    semilogy(theta, abs(beam_patterns_d(:,i)));
+    semilogy(theta, abs(beam_patterns_d(:,i)), line_color(i));
       title("Delay-and-sum beam patterns for " ...
         + d(i) + " meters distance");
+end
+
+
+%%% Question 3
+
+d = 0.08;
+N = 8;
+theta_s = pi/2;
+theta = [0, pi/4, pi/3];
+f = linspace(0,8000, 1000);
+
+beam_patterns_f = zeros(length(f), length(theta));
+for t = 1:length(theta)
+    for freq = 1:length(f)
+        beam_patterns_f(freq, t) = ...
+            beta_omega(f(freq), theta(t), N, d, theta_s); 
+    end
+end
+
+figure(5);
+
+semilogy(f, abs(beam_patterns_f(:,1)), line_color(1));
+hold on;
+
+for i = 2:length(theta)
+    semilogy(f, abs(beam_patterns_f(:,i)), line_color(i));
+end
+
+legend('\theta = ' + string(rad2deg(theta)) + char(176), ...
+                'Location', 'southeast');
+title('Delay-and-sum beam patterns for different number of angles');
+
+hold off;
+
+figure(6);
+for i = 1:length(theta)
+    subplot(2,2,i);
+    semilogy(f, abs(beam_patterns_f(:,i)), line_color(i));
+       title("Delay-and-sum beam patterns for " ...
+           + string(rad2deg(theta(i))) + char(176) + " angle");
 end
 
 %% Functions 
