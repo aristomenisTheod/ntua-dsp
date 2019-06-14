@@ -54,7 +54,7 @@ y_total_real = real(y_total);
 
 %%% Question 2
 
-t = linspace(1, signal_length/Fs, signal_length);
+t = linspace(0, signal_length/Fs, signal_length);
 %Plots
 figure();
 plot(t, clean_signal, "-r");
@@ -94,5 +94,27 @@ snr_output = snr(y_total_real,y_total_real-clean_signal);
 
 %Output file
 audiowrite('sim_ds.wav', y_total_real, Fs);
+
+%% B) Single channel Wiener filtering
+t_begin = Fs*0.47;
+t_end = Fs*0.5;
+
+u_t = sensors(:,3)-clean_signal;
+frame_wiener = sensors(t_begin:t_end,3);
+noise = u_t(t_begin:t_end,1);
+
+%%% Question 1
+power_spectrum_u = pwelch(noise);
+power_spectrum_x = pwelch(frame_wiener);
+frequency_responce = 1-power_spectrum_u./power_spectrum_x;
+% linspace(0, length(frequency_responce));
+figure();
+plot(power_spectrum_x);
+figure();
+plot(power_spectrum_u);
+
+freq = linspace(0,8,length(frequency_responce));
+figure();
+semilogy(freq,(frequency_responce));
 
 %% FUNCTIONS
