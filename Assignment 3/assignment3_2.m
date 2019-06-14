@@ -106,15 +106,14 @@ noise = u_t(t_begin:t_end,1);
 %%% Question 1
 power_spectrum_u = pwelch(noise);
 power_spectrum_x = pwelch(frame_wiener);
-frequency_responce = 1-power_spectrum_u./power_spectrum_x;
+frequency_responce = 1 - power_spectrum_u./power_spectrum_x;
 % linspace(0, length(frequency_responce));
-figure();
-plot(power_spectrum_x);
-figure();
-plot(power_spectrum_u);
-
 freq = linspace(0,8,length(frequency_responce));
 figure();
-semilogy(freq,(frequency_responce));
+plot(freq,power_spectrum_x);
+figure();
+plot(freq,power_spectrum_u);
+figure();
+plot(freq,abs(frequency_responce));
 
 %% FUNCTIONS
