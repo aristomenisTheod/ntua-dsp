@@ -56,22 +56,23 @@ y_total_real = real(y_total);
 
 t = linspace(0, signal_length/Fs, signal_length);
 %Plots
-figure();
-plot(t, clean_signal, "-r");
-hold on;
-plot(t, sensors(:,3), "-g");
-plot(t, y_total_real, "-b");
-hold off;
-title("Signals");
-legend(["Clean signal", "Recieced signal from microphone 3", "Delay-and-sum beamformer output"], 'Location', 'southeast');
-alpha(.5);
+ figure();
+ plot(t, clean_signal, "-r");
+ hold on;
+ plot(t, sensors(:,4), "-g");
+ plot(t, y_total_real, "-b");
+ hold off;
+ title("Signals");
+legend(["Clean signal", "Recieced signal from microphone 3",...
+    "Delay-and-sum beamformer output"], 'Location', 'southeast');
+ alpha(.5);
 
 figure();
 subplot(2,2,1);
 plot(t, clean_signal, "-r");
 title("Clean signal");
 subplot(2,2,2);
-plot(t, sensors(:,3), "-g");
+plot(t, sensors(:,4), "-g");
 title("Recieced signal from microphone 3");
 subplot(2,2,3);
 plot(t, y_total_real, "-b");
@@ -82,14 +83,14 @@ figure();
 spectrogram(clean_signal, [],[],[],Fs,'yaxis');
 title("Clean signal");
 figure();
-spectrogram(sensors(:,3), [],[],[],Fs, 'yaxis');
+spectrogram(sensors(:,4), [],[],[],Fs, 'yaxis');
 title("Recieced signal from microphone 3");
 figure();
 spectrogram(y_total_real, [],[],[],Fs, 'yaxis');
 title("Delay-and-sum beamformer output");
 
 %SNRs
-snr_input = snr(sensors(:,3),sensors(:,3)-clean_signal);
+snr_input = snr(sensors(:,4),sensors(:,4)-clean_signal);
 snr_output = snr(y_total_real,y_total_real-clean_signal);
 
 %Output file
@@ -98,42 +99,48 @@ audiowrite('sim_ds.wav', y_total_real, Fs);
 %% B) Single channel Wiener filtering
 t_begin = Fs*0.47;
 t_end = Fs*0.5;
+ 
+% Remember: x(t) = u(t) + s(t)
+% s -> clean signal
+% u -> noise signal
 
-u_t = sensors(:,3)-clean_signal;
-frame_wiener = sensors(t_begin:t_end,3);
-noise = u_t(t_begin:t_end,1);
-
-%%% Question 1
+x = sensors(t_begin:t_end,4);
+s = clean_signal(t_begin:t_end);
+u = x - s;
 L = Fs*0.03;
-window = L/3;
-noverlap = L/6;
-nfft = L+1;
-
-power_spectrum_u = pwelch(noise,L,noverlap,L,Fs,'onesided');
-power_spectrum_x = pwelch(frame_wiener,L,noverlap,L,Fs,'onesided');
-frequency_responce = 1 - power_spectrum_u./power_spectrum_x;
-
-
-
-% linspace(0, length(frequency_responce));
-freq = linspace(0,8,length(frequency_responce));
+[power_spectrum_u, freq] = pwelch(u, L/3, L/6, L+1, Fs, 'onesided');
+[power_spectrum_x, ~] = pwelch(x, L/3, L/6, L+1, Fs, 'onesided');
+ 
+frequency_responce = 1-power_spectrum_u./power_spectrum_x;
 figure();
-semilogy(freq,power_spectrum_x);
-figure();
-semilogy(freq,power_spectrum_u);
-figure();
+subplot(1,2,1);
+hold on;
 plot(freq,db(frequency_responce));
+title('Wiener Filter Frequency Responce');
+xlim([0,8000]);
+xlabel('Freq');
+ylabel('Amp');
+grid on;
+
+
+
 
 %%% Question 2
-power_spectrum_s = pwelch(clean_signal);
+
 % E = mean((abs(power_spectrum_s - frequence_responce .* power_spectrum_s)).^2);
 % 
 % nsd = E./power_spectrum_x
 nsd = (abs(1-frequency_responce)).^2;
 
-figure();
-semilogy(freq,nsd);
-
+subplot(1,2,2);
+hold on;
+plot(freq,db(nsd));
+title('Speech Distortion Index');
+xlim([0,8000]);
+xlabel('Freq'); 
+ylabel('Amp');
+grid on;
+hold off;
 %% Beaforming in real signals
 N = 7;
 d = 0.04;
@@ -182,11 +189,12 @@ t = linspace(0, signal_length/Fs, signal_length);
 figure();
 plot(t, clean_signal, "-r");
 hold on;
-plot(t, sensors(:,3), "-g");
+plot(t, sensors(:,4), "-g");
 plot(t, y_total_real, "-b");
 hold off;
 title("Signals");
-legend(["Clean signal", "Recieced signal from microphone 3", "Delay-and-sum beamformer output"], 'Location', 'southeast');
+legend(["Clean signal", "Recieced signal from microphone 3",...
+    "Delay-and-sum beamformer output"], 'Location', 'southeast');
 alpha(.5);
 
 figure();
@@ -194,7 +202,7 @@ subplot(2,2,1);
 plot(t, clean_signal, "-r");
 title("Clean signal");
 subplot(2,2,2);
-plot(t, sensors(:,3), "-g");
+plot(t, sensors(:,4), "-g");
 title("Recieced signal from microphone 3");
 subplot(2,2,3);
 plot(t, y_total_real, "-b");
@@ -205,7 +213,7 @@ figure();
 spectrogram(clean_signal, [],[],[],Fs,'yaxis');
 title("Clean signal");
 figure();
-spectrogram(sensors(:,3), [],[],[],Fs, 'yaxis');
+spectrogram(sensors(:,4), [],[],[],Fs, 'yaxis');
 title("Recieced signal from microphone 3");
 figure();
 spectrogram(y_total_real, [],[],[],Fs, 'yaxis');
