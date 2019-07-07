@@ -219,8 +219,33 @@ figure();
 spectrogram(y_total_real, [],[],[],Fs, 'yaxis');
 title("Delay-and-sum beamformer output");
 
+%Output file
+audiowrite('real_ds.wav', y_total_real, Fs);
+
 % Question 3
 
-
+input_ssnr = ssnr(sensors(:,4),sensors(:,4)-clean_signal, 35,0,L);
+output_ssnr = ssnr(y_total_real, y_total_real-clean_signal, 35, 0, L);
 
 %% FUNCTIONS
+
+function result = ssnr(signal, noise, upper_limit, lower_limit, L)
+
+    signal_buffered = buffer(signal,L,0,'nodelay');
+    noise_buffered = buffer(noise,L,0,'nodelay');
+
+    signal_sum = sum(signal_buffered.^2,2);
+    noise_sum = sum(noise_buffered.^2,2);
+
+    snr = 10*log10(signal_sum./noise_sum);
+    snr_length = length(snr);
+    for i=1:snr_length
+        if snr(i,1) > upper_limit
+            snr(i,1) = upper_limit;
+        elseif snr(i,1) < lower_limit
+            snr(i,1) = 0;
+        end
+    end
+
+    result = sum(snr,1)/snr_length;
+end
