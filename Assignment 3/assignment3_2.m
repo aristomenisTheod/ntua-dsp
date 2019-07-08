@@ -103,6 +103,7 @@ t_end = Fs*0.5;
 % Remember: x(t) = u(t) + s(t)
 % s -> clean signal
 % u -> noise signal
+% x -> input signal
 
 x = sensors(t_begin:t_end,4);
 s = clean_signal(t_begin:t_end);
@@ -122,9 +123,6 @@ xlabel('Freq');
 ylabel('Amp');
 grid on;
 
-
-
-
 %%% Question 2
 
 % E = mean((abs(power_spectrum_s - frequence_responce .* power_spectrum_s)).^2);
@@ -141,6 +139,109 @@ xlabel('Freq');
 ylabel('Amp');
 grid on;
 hold off;
+
+%%% Question 3
+
+x_framed = buffer(x, length(power_spectrum_u), 0, 'nodelay');
+wiener_output = zeros(size(x,1),1);
+leng = size(x_framed,1);
+for i=1:size(x_framed,2)
+    [power_spectrum_x_here, ~] = pwelch(x, L/3, L/6, L+1, Fs, 'onesided');
+    Hw = 1-power_spectrum_u./power_spectrum_x_here;
+    x_fft = fft(x_framed(:,i));
+    wiener_output_frame = x_fft.*Hw;
+    wiener_output((i-1)*leng+1:i*leng,1) = ifft(wiener_output_frame);
+end
+time = linspace(1,length(wiener_output)*Fs,length(wiener_output));
+s_plot = zeros(length(time),1);
+s_plot(1:length(s_plot)-1,1) = s;
+x_plot = zeros(length(time),1);
+x_plot(1:length(x_plot)-1,1) = x;
+u_plot = zeros(length(time),1);
+u_plot(1:length(u_plot)-1,1) = u;
+
+%Plots
+figure();
+plot(time,real(wiener_output),'-r');
+hold on;
+plot(time,s_plot,'-b');
+plot(time,x_plot,'-g');
+plot(time,u_plot);
+hold off;
+
+figure();
+subplot(2,2,1);
+plot(time,real(wiener_output),'-r');
+title("Wiener filter output");
+subplot(2,2,2);
+plot(time,s_plot,'-b');
+title("Clean signal");
+subplot(2,2,3);
+plot(time,x_plot,'-g');
+title("Recieved signal on microphone");
+subplot(2,2,4);
+plot(time,u_plot);
+title("Noise signal");
+
+[power_spectrum_wiener,Fw] = pwelch(real(wiener_output), L/3, L/6, L+1, Fs, 'onesided');
+[power_spectrum_s, ~] = pwelch(s, L/3, L/6, L+1, Fs, 'onesided');
+figure();
+subplot(2,2,1);
+plot(freq,db(power_spectrum_wiener),'-r');
+xlim([0,8000]);
+title("Wiener filter output");
+subplot(2,2,2);
+plot(freq,db(power_spectrum_s),'-b');
+xlim([0,8000]);
+title("Clean signal");
+subplot(2,2,3);
+plot(freq,db(power_spectrum_x),'-g');
+xlim([0,8000]);
+title("Recieved signal on microphone");
+subplot(2,2,4);
+plot(freq,db(power_spectrum_u));
+xlim([0,8000]);
+title("Noise signal");
+
+%%%Question 4
+
+%SNRs
+snr_input_wiener = snr(x,u);
+snr_output_wiener = snr(wiener_output,wiener_output-s_plot);
+
+%Plots
+y = y_total_real(t_begin:t_end);
+[power_spectrum_y, ~] = pwelch(y, L/3, L/6, L+1, Fs, 'onesided');
+
+figure();
+hold on;
+plot(freq,db(power_spectrum_wiener),'-r');
+plot(freq,db(power_spectrum_s),'-b');
+plot(freq,db(power_spectrum_x),'-g');
+plot(freq,db(power_spectrum_y));
+xlim([0,8000]);
+title("Power Spectrums");
+hold off;
+
+figure();
+subplot(2,2,1);
+plot(freq,db(power_spectrum_wiener),'-r');
+xlim([0,8000]);
+title("Wiener filter output");
+subplot(2,2,2);
+plot(freq,db(power_spectrum_s),'-b');
+xlim([0,8000]);
+title("Clean signal");
+subplot(2,2,3);
+plot(freq,db(power_spectrum_x),'-g');
+xlim([0,8000]);
+title("Recieved signal on microphone");
+subplot(2,2,4);
+plot(freq,db(power_spectrum_y));
+xlim([0,8000]);
+title("Beamformer output");
+
+
 %% Beaforming in real signals
 N = 7;
 d = 0.04;
